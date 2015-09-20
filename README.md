@@ -1,5 +1,7 @@
 # Make3d
 
+Much credit to https://github.com/mapillary/OpenSfM for providing us with a wonderfully packaged, open source, actually working structure from motion implementation. Will give them proper credit with a submodule or something when there's time.
+
 Docker commands:  
 Setup (from ~/Make3d/OpenSfM)  
 
