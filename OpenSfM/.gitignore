@@ -1,0 +1,17 @@
+*.pyc
+*.so
+xcode
+.DS_Store
+
+# Ignore generated files
+/build
+/cmake_build
+
+# Ignore the data folder, but not the berlin example.
+data/*
+data/berlin/*
+!data/berlin
+!data/berlin/config.yaml
+!data/berlin/images
+
+eval

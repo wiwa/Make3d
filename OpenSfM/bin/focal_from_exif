@@ -1,0 +1,82 @@
+#!/usr/bin/env python
+import os.path, sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+import json
+import exifread
+import time
+import numpy as np
+from cv2 import imread
+
+from opensfm.sensors import sensor_data
+from opensfm import dataset
+from opensfm import exif
+from opensfm import io
+
+
+def usage():
+    print 'USAGE: %s data_set_path' % sys.argv[0]
+    sys.exit(0)
+
+if len(sys.argv) > 1:
+    path = sys.argv[1]
+else:
+    usage()
+
+start = time.time()
+data = dataset.DataSet(path)
+images = data.images()
+missing_sensors = {}
+camera_models = {}
+default_focal_ratio = data.config.get('default_focal_ratio', 0.85)
+
+if os.path.exists(data.data_path + '/exif_overrides.json'):
+    with open(data.data_path + '/exif_overrides.json', 'rb') as f:
+        exif_overrides = io.json_loads(f.read())
+else:
+    exif_overrides = {}
+
+if os.path.exists(os.path.join(data.data_path, 'image_data.json')):
+    with open(os.path.join(data.data_path, 'image_data.json'), 'rb') as f:
+        exif_dict = io.json_loads(f.read())
+else:
+    exif_dict = {}
+
+for image in images:
+    print 'Extracting focal lengths for image', image
+
+    # EXIF data in Image
+    d = exif.extract_exif_from_file(data.load_image(image))
+
+    # Set default focal ratio
+    if not d['focal_prior']:
+        print 'Warning: Missing focal length in EXIF. Using default focal ratio {}'.format(default_focal_ratio)
+        d['focal_prior'] = default_focal_ratio
+
+    # Image Height and Image Width
+    if not data.config.get('use_exif_size', True):
+        height, width = data.image_as_array(image).shape[:2]
+        d['height']  = height
+        d['width'] = width
+
+    data.save_exif(image, d)
+
+# camera models
+camera_models = {}
+for image in data.images():
+    d = data.load_exif(image)
+    if d['camera'] not in camera_models:
+
+        camera_models[d['camera']] = {
+                'width': d['width'],
+                'height': d['height'],
+                "focal": d['focal_prior'],
+                "focal_prior": d['focal_prior'],
+                "k1": d.get('k1', 0.),
+                "k2": d.get('k2', 0.)
+            }
+data.save_camera_models(camera_models)
+
+end = time.time()
+with open(data.profile_log(), 'a') as fout:
+    fout.write('focal_from_exif: {0}\n'.format(end - start))
