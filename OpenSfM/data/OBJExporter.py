@@ -1,5 +1,6 @@
 import sys
 import json
+import os
 
 def parse(file_directory):
     json_data=open(file_directory).read()
