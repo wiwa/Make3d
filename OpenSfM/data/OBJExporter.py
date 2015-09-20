@@ -78,7 +78,6 @@ if __name__ == "__main__":
     os.system('echo '+jsonname)
     obj = parse(jsonname)
 
-
     f = open('test.obj', 'r+')
     f.write(obj)
     f.close()
