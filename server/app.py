@@ -1,5 +1,6 @@
 from flask import Flask, request
 import uuid
+import base64
 import json
 import os
 from time import sleep
@@ -34,10 +35,10 @@ def relay_data():
         f.write(root_dir + '\n')
         f.close()
         imgs = request.get_json(force=True)
-        print('json received: ' , imgs)
         for filename in imgs:
             f = open('%s/%s' % (root_dir + '/images' , filename), 'w')
-            f.write(imgs[filename])
+	    imgdata = base64.b64decode(imgs[filename]))
+            f.write(imgdata))
             f.close()
         stem = 'docker run --rm -it -v '
         imgpathmap = '%s:/%s ' % (root_dir, foldername)
